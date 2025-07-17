@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Solar System Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+            perspective: 1000px;
+        }
+        
+        .solar-system {
+            position: absolute;
+            width: 100%;
+            height: 100vh;
+            transform-style: preserve-3d;
+            transition: transform 1s;
+        }
+        
+        .sun {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle at 30% 30%, #fff, #ffd700, #ff8c00, #ff4500);
+            border-radius: 50%;
+            box-shadow: 0 0 50px #ff8c00, 0 0 100px #ff4500;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        
+        .orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform-style: preserve-3d;
+            transform: translate(-50%, -50%) rotateX(60deg);
+        }
+        
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            transform-style: preserve-3d;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* Planet sizes and colors */
+        .mercury { width: 8px; height: 8px; background: #b5b5b5; }
+        .venus { width: 14px; height: 14px; background: #e6c229; }
+        .earth { width: 16px; height: 16px; background: #6b93d6; }
+        .mars { width: 12px; height: 12px; background: #e27b58; }
+        .jupiter { width: 36px; height: 36px; background: #e3b07b; }
+        .saturn { width: 30px; height: 30px; background: #e3d9b0; }
+        .uranus { width: 20px; height: 20px; background: #b5e3e3; }
+        .neptune { width: 18px; height: 18px; background: #5b5ddf; }
+        
+        /* Saturn's rings */
+        .saturn::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 20px;
+            background: rgba(210, 210, 180, 0.6);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotateX(75deg);
+            z-index: -1;
+        }
+        
+        /* Moon for Earth */
+        .moon {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ccc;
+            border-radius: 50%;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        button {
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 5px 10px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        
+        button:hover {
+            background: #444;
+        }
+        
+        .planet-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 200px;
+            display: none;
+        }
+        
+        .planet-label {
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            transform: translateY(-20px);
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="solar-system" id="solarSystem">
+        <div class="sun"></div>
+        
+        <!-- Mercury -->
+        <div class="orbit" style="width: 120px; height: 120px;">
+            <div class="planet mercury" data-name="Mercury" data-desc="The smallest planet in our solar system.">
+                <div class="planet-label">Mercury</div>
+            </div>
+        </div>
+        
+        <!-- Venus -->
+        <div class="orbit" style="width: 180px; height: 180px;">
+            <div class="planet venus" data-name="Venus" data-desc="The hottest planet with a toxic atmosphere.">
+                <div class="planet-label">Venus</div>
+            </div>
+        </div>
+        
+        <!-- Earth -->
+        <div class="orbit" style="width: 240px; height: 240px;">
+            <div class="planet earth" data-name="Earth" data-desc="Our home planet, the only known planet with life.">
+                <div class="planet-label">Earth</div>
+                <div class="moon"></div>
+            </div>
+        </div>
+        
+        <!-- Mars -->
+        <div class="orbit" style="width: 300px; height: 300px;">
+            <div class="planet mars" data-name="Mars" data-desc="The Red Planet, target for human colonization.">
+                <div class="planet-label">Mars</div>
+            </div>
+        </div>
+        
+        <!-- Jupiter -->
+        <div class="orbit" style="width: 400px; height: 400px;">
+            <div class="planet jupiter" data-name="Jupiter" data-desc="The largest planet, a gas giant with a Great Red Spot.">
+                <div class="planet-label">Jupiter</div>
+            </div>
+        </div>
+        
+        <!-- Saturn -->
+        <div class="orbit" style="width: 480px; height: 480px;">
+            <div class="planet saturn" data-name="Saturn" data-desc="Known for its beautiful ring system.">
+                <div class="planet-label">Saturn</div>
+            </div>
+        </div>
+        
+        <!-- Uranus -->
+        <div class="orbit" style="width: 540px; height: 540px;">
+            <div class="planet uranus" data-name="Uranus" data-desc="An ice giant that rotates on its side.">
+                <div class="planet-label">Uranus</div>
+            </div>
+        </div>
+        
+        <!-- Neptune -->
+        <div class="orbit" style="width: 600px; height: 600px;">
+            <div class="planet neptune" data-name="Neptune" data-desc="The windiest planet with the strongest winds in the solar system.">
+                <div class="planet-label">Neptune</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="planet-info" id="planetInfo">
+        <h3 id="planetName"></h3>
+        <p id="planetDesc"></p>
+    </div>
+    
+    <div class="controls">
+        <button id="rotateX">Rotate X-Axis</button>
+        <button id="rotateY">Rotate Y-Axis</button>
+        <button id="rotateZ">Rotate Z-Axis</button>
+        <button id="resetView">Reset View</button>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const solarSystem = document.getElementById('solarSystem');
+            const planetInfo = document.getElementById('planetInfo');
+            const planetName = document.getElementById('planetName');
+            const planetDesc = document.getElementById('planetDesc');
+            
+            // Orbital speeds (relative to Earth's speed)
+            const speeds = {
+                mercury: 1.6,
+                venus: 1.2,
+                earth: 1,
+                mars: 0.8,
+                jupiter: 0.4,
+                saturn: 0.3,
+                uranus: 0.2,
+                neptune: 0.1
+            };
+            
+            // Initial angles for each planet
+            let angles = {
+                mercury: 0,
+                venus: 0,
+                earth: 0,
+                mars: 0,
+                jupiter: 0,
+                saturn: 0,
+                uranus: 0,
+                neptune: 0
+            };
+            
+            // Rotation controls
+            let rotateX = 60;
+            let rotateY = 0;
+            let rotateZ = 0;
+            
+            // Set up planet click events
+            document.querySelectorAll('.planet').forEach(planet => {
+                planet.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    planetName.textContent = this.dataset.name;
+                    planetDesc.textContent = this.dataset.desc;
+                    planetInfo.style.display = 'block';
+                });
+            });
+            
+            // Close info box when clicking elsewhere
+            document.addEventListener('click', function() {
+                planetInfo.style.display = 'none';
+            });
+            
+            // Control buttons
+            document.getElementById('rotateX').addEventListener('click', function() {
+                rotateX = (rotateX + 30) % 360;
+                updateSystemRotation();
+            });
+            
+            document.getElementById('rotateY').addEventListener('click', function() {
+                rotateY = (rotateY + 30) % 360;
+                updateSystemRotation();
+            });
+            
+            document.getElementById('rotateZ').addEventListener('click', function() {
+                rotateZ = (rotateZ + 30) % 360;
+                updateSystemRotation();
+            });
+            
+            document.getElementById('resetView').addEventListener('click', function() {
+                rotateX = 60;
+                rotateY = 0;
+                rotateZ = 0;
+                updateSystemRotation();
+            });
+            
+            function updateSystemRotation() {
+                solarSystem.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
+            }
+            
+            // Moon orbit around Earth
+            let moonAngle = 0;
+            
+            // Animation loop
+            function animate() {
+                // Update planet positions
+                Object.keys(angles).forEach(planet => {
+                    angles[planet] = (angles[planet] + speeds[planet]) % 360;
+                    const planetElement = document.querySelector(`.${planet}`);
+                    const orbitRadius = planetElement.parentElement.offsetWidth / 2;
+                    
+                    planetElement.style.transform = `translateX(-50%) rotateY(${angles[planet]}deg) translateX(${orbitRadius}px) rotateY(${-angles[planet]}deg)`;
+                });
+                
+                // Update moon position
+                moonAngle = (moonAngle + 5) % 360;
+                const moon = document.querySelector('.moon');
+                if (moon) {
+                    moon.style.transform = `translateX(-50%) rotateY(${moonAngle}deg) translateX(20px) rotateY(${-moonAngle}deg)`;
+                }
+                
+                requestAnimationFrame(animate);
+            }
+            
+            // Start animation
+            animate();
+        });
+    </script>
+</body>
+</html>
